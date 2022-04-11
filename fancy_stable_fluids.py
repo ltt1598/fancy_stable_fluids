@@ -12,7 +12,7 @@ import colorsys
 ti.init(arch=ti.cuda)
 
 # resolution constants
-SIM_RES = 64
+SIM_RES = 128
 RENDER_RES_X = 1280
 RENDER_RES_Y = 1280
 aspect_ratio = float(RENDER_RES_X) / float(RENDER_RES_Y)
@@ -433,7 +433,7 @@ def render():
 # random color gen
 def generate_color():
     c = np.array(colorsys.hsv_to_rgb(np.random.random(), 1.0, 1.0))
-    c *= 0.5
+    c *= 1.0
     return c
 
 # mouse events
