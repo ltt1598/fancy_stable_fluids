@@ -9,12 +9,12 @@ import taichi as ti
 import numpy as np
 import colorsys
 
-ti.init(arch=ti.cpu)
+ti.init(arch=ti.cuda)
 
 # resolution constants
 SIM_RES = 128
 RENDER_RES_X = 1280
-RENDER_RES_Y = 500
+RENDER_RES_Y = 768
 aspect_ratio = float(RENDER_RES_X) / float(RENDER_RES_Y)
 SIM_RES_Y = SIM_RES
 SIM_RES_X = int(np.ceil(SIM_RES_Y * aspect_ratio))
@@ -415,13 +415,13 @@ def fill_color_v3(dye: ti.template()):
         v = dye.sample(uv)
         c = ti.Vector([abs(v[0]), abs(v[1]), abs(v[2])])
 
-        # sunrays = _sunrays.sample(uv)
-        # c *= sunrays
+        sunrays = _sunrays.sample(uv)
+        c *= sunrays
 
-        # bloom = _bloom_final.sample(uv) * 0.25
-        # bloom *= sunrays
-        # bloom = linear_to_gamma(bloom)
-        # c += bloom
+        bloom = _bloom_final.sample(uv) * 0.25
+        bloom *= sunrays
+        bloom = linear_to_gamma(bloom)
+        c += bloom
 
         pixels.field[i, j] = c
 
