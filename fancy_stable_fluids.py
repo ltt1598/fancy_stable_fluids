@@ -9,19 +9,19 @@ import taichi as ti
 import numpy as np
 import colorsys
 
-ti.init(arch=ti.cuda)
+ti.init(arch=ti.cpu)
 
 # resolution constants
 SIM_RES = 128
 RENDER_RES_X = 1280
-RENDER_RES_Y = 1280
+RENDER_RES_Y = 500
 aspect_ratio = float(RENDER_RES_X) / float(RENDER_RES_Y)
 SIM_RES_Y = SIM_RES
-SIM_RES_X = int(SIM_RES_Y * aspect_ratio)
+SIM_RES_X = int(np.ceil(SIM_RES_Y * aspect_ratio))
 BLOOM_RESOLUTION_Y = 256
-BLOOM_RESOLUTION_X = int(BLOOM_RESOLUTION_Y * aspect_ratio)
+BLOOM_RESOLUTION_X = int(np.ceil(BLOOM_RESOLUTION_Y * aspect_ratio))
 SUNRAYS_RESOLUTION_Y = 196
-SUNRAYS_RESOLUTION_X = int(SUNRAYS_RESOLUTION_Y * aspect_ratio)
+SUNRAYS_RESOLUTION_X = int(np.ceil(SUNRAYS_RESOLUTION_Y * aspect_ratio))
 
 # sim constants
 max_fps = 60
@@ -159,9 +159,10 @@ def advect(vf: ti.template(), qf: ti.template(), new_qf: ti.template(),
     for i, j in qf.field:
         uv = qf.normalize(ti.Vector([i, j]) + 0.5)
         vel = vf.sample(uv)
-        vel_uv = vel * vf.texel_size # backtracing, RK-1
-        prev_uv = uv - dt * vel_uv
-        prev_q = qf.sample(prev_uv)
+        vel[0] *= vf.texel_size_x
+        vel[1] *= vf.texel_size_y # transfer to uv space
+        prev_uv = uv - dt * vel # backtracing, RK-1
+        prev_q = qf.sample(prev_uv) 
         decay = 1.0 + dissipation * dt
         new_qf.field[i, j] = prev_q / decay
 
@@ -169,7 +170,7 @@ def advect(vf: ti.template(), qf: ti.template(), new_qf: ti.template(),
 def splat_velocity(vf: ti.template(), omx: float, omy: float, fx: float, fy: float):
     for i, j in vf.field:
         u, v = vf.normalize(ti.Vector([i, j]) + 0.5)
-        dx, dy = (u - omx), (v - omy)
+        dx, dy = (u - omx) * aspect_ratio, (v - omy)
         d2 = dx * dx + dy * dy
         momentum = ti.exp(-d2 * inv_force_radius) * ti.Vector([fx, fy]) * f_strength
         vf.field[i, j] += momentum
@@ -178,7 +179,7 @@ def splat_velocity(vf: ti.template(), omx: float, omy: float, fx: float, fy: flo
 def splat_dye(dye: ti.template(), omx: float, omy: float, r: float, g: float, b: float):
     for i, j in dye.field:
         u, v = dye.normalize(ti.Vector([i, j]) + 0.5)
-        dx, dy = (u - omx), (v - omy)
+        dx, dy = (u - omx) * aspect_ratio, (v - omy)
         d2 = dx * dx + dy * dy
         color = ti.exp(-d2 * inv_dye_radius) * ti.Vector([r, g, b])
         dye.field[i, j] += color
