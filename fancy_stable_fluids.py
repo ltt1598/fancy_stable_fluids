@@ -13,8 +13,8 @@ ti.init(arch=ti.cuda)
 
 # resolution constants
 SIM_RES = 128
-RENDER_RES_X = 1280
-RENDER_RES_Y = 768
+RENDER_RES_X = 500
+RENDER_RES_Y = 800
 aspect_ratio = float(RENDER_RES_X) / float(RENDER_RES_Y)
 SIM_RES_Y = SIM_RES
 SIM_RES_X = int(np.ceil(SIM_RES_Y * aspect_ratio))
@@ -502,9 +502,8 @@ def main():
             mouse_data = md_gen(window)
             step(mouse_data)
             render()
-
-        # canvas.set_image(pixels.field)
-        canvas.set_image(dyes_pair.cur.field)
+            
+        canvas.set_image(pixels.field)
         window.show()
 
 if __name__ == '__main__':
