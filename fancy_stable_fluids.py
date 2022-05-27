@@ -59,7 +59,7 @@ def lerp(vl, vr, frac):
 
 @ti.func
 def bilerp(qf, i, j, res_x, res_y):
-    ii, ij = int(i), int(j) # integer part
+    ii, ij = int(ti.floor(i)), int(ti.floor(j)) # integer part
     fi, fj = i - ii, j - ij # fraction part
     a = sample_clamp_to_edge(qf, ii, ij, res_x, res_y)
     b = sample_clamp_to_edge(qf, ii + 1, ij, res_x, res_y)
